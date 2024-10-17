@@ -54,14 +54,33 @@ export class ChatbotService {
         functions: [
           {
             name: 'searchProducts',
-            description: 'Search for products from a CSV file',
+            description:
+              'Search for products by name and retrieve specific characteristics such as price or other features (e.g., availability, color). If the user requests a product and asks for the price, return the product name and set "price" to true. If the user requests another characteristic (such as availability or color), set "caracteristica" to true. For queries involving prices in different currencies, identify the currency if mentioned and rely on a currency conversion function if necessary.',
             parameters: {
               type: 'object',
               properties: {
                 query: {
-                  type: 'string',
+                  type: 'object',
+                  properties: {
+                    name: {
+                      type: 'string',
+                      description:
+                        'The name of the product being searched for. Example: "watch".',
+                    },
+                    price: {
+                      type: 'boolean',
+                      description:
+                        'Set to true if the user is asking for the price of the product.',
+                    },
+                    actions: {
+                      type: 'string',
+                      description:
+                        'Set to true if the user is asking about of the currency in the query.',
+                    },
+                  },
+                  required: ['name'],
                   description:
-                    'Search term for products or products prices, retrieve the price on a user currency request',
+                    'An object that identifies the product name and whether the user is asking for the price or other characteristics. Example: { name: "watch", price: true, caracteristica: false }.',
                 },
               },
               required: ['query'],
@@ -91,9 +110,7 @@ export class ChatbotService {
           },
         ],
       });
-      console.log('response________', response);
       const message = response.choices[0].message;
-      console.log('message________', message);
       const tokenUsage: TokenUsageDto = {
         promptTokens: response.usage.prompt_tokens,
         completionTokens: response.usage.completion_tokens,
@@ -103,21 +120,15 @@ export class ChatbotService {
       let result: string;
 
       if (message?.function_call) {
-        console.log('entra al if del message.tool_calls------------->');
         const { name, arguments: args } = message.function_call;
         const parsedArgs = JSON.parse(args);
-        console.log('parsedArgs________', parsedArgs);
-        console.log('name________', name);
         switch (name) {
           case 'searchProducts':
-            console.log('entra al case searchProducts');
             const products = await this.searchProducts(parsedArgs.query);
-            console.log('products del case________', products);
             result = `Products found: ${products}`;
             break;
 
           case 'convertCurrencies':
-            console.log('entra al case convertCurrencies');
             const convertedAmount = await this.convertCurrencies(parsedArgs);
             result = `${message.content} Converted amount: ${convertedAmount.toFixed(2)}`;
             break;
@@ -137,7 +148,6 @@ export class ChatbotService {
         response: result,
       };
     } catch (error) {
-      console.log('error________', error);
       this.logger.error(
         `Error processing query: ${error.message}`,
         error.stack,

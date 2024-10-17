@@ -8,7 +8,7 @@ import { pipeline } from 'stream';
 export class CsvService {
   private readonly logger = new Logger(CsvService.name);
 
-  async searchProducts(query: string): Promise<any> {
+  async searchProducts(query: any): Promise<any> {
     const products: any[] = [];
 
     try {
@@ -18,7 +18,11 @@ export class CsvService {
         csvParser(),
         async (source) => {
           for await (const row of source) {
-            if (row.displayTitle?.toLowerCase().includes(query.toLowerCase())) {
+            if (
+              row.displayTitle
+                ?.toLowerCase()
+                .includes(query?.name?.toLowerCase())
+            ) {
               products.push(row);
             }
           }
@@ -26,7 +30,13 @@ export class CsvService {
       );
       const productNames = products
         .slice(0, 2)
-        .map((p) => p.displayTitle)
+        .map((p) => {
+          if (query?.price) {
+            return `${p.displayTitle} - ${p.price}`;
+          } else {
+            return p.displayTitle;
+          }
+        })
         .join(', ');
 
       return productNames || 'No products found';
