@@ -6,7 +6,7 @@ import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { ChatbotResponseDto } from './dto/chatbot-response.dto';
 import { TokenUsageDto } from './dto/token-usage.dto';
-import { CsvService } from 'src/csv/csv.service';
+import { CsvService } from '../csv/csv.service';
 import { CurrencyConversionInterface } from './interfaces/currencyConversion.interface';
 import { ChatbotRequestDto } from './dto/chatbot-request.dto';
 
