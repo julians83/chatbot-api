@@ -38,7 +38,7 @@ EXCHANGE_API_KEY=tu_exchange_api_key
 2. Navega al directorio del proyecto:
 
    ```bash
-   cd tu-repositorio
+   cd chatbot-api
    ```
 
 3. Instala las dependencias:
@@ -87,4 +87,4 @@ Este endpoint procesa una consulta de usuario, utilizando la API de OpenAI para 
 - `src/chatbot/chatbot.service.ts`: Lógica principal de la API de chatbot, que incluye la interacción con OpenAI y funciones personalizadas.
 - `src/csv/csv.service.ts`: Lógica para la búsqueda de productos en archivos CSV.
 - `src/dto/`: Define los Data Transfer Objects (DTO) utilizados para las solicitudes y respuestas.
-- `src/interfaces/`: Define las interfaces utilizadas, como la conversión de divisas.
+- `src/interfaces/`: Define las interfaces utilizadas, como la conversión de divisas, respuestas del modelo, entre otras.
