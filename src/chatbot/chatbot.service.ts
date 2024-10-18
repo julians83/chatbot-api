@@ -9,6 +9,12 @@ import { TokenUsageDto } from './dto/token-usage.dto';
 import { CsvService } from '../csv/csv.service';
 import { CurrencyConversionInterface } from './interfaces/currencyConversion.interface';
 import { ChatbotRequestDto } from './dto/chatbot-request.dto';
+import {
+  OpenAIResponse,
+  OpenAIMessage,
+  FunctionCallArguments,
+  QueryInterface,
+} from './interfaces/chatBot.interface';
 
 @Injectable()
 export class ChatbotService {
@@ -20,8 +26,8 @@ export class ChatbotService {
     private readonly configService: ConfigService,
     private readonly csvService: CsvService,
   ) {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
-    const organizationId = this.configService.get<string>(
+    const apiKey: string = this.configService.get<string>('OPENAI_API_KEY');
+    const organizationId: string = this.configService.get<string>(
       'OPENAI_ORGANIZATION_ID',
       '',
     );
@@ -42,56 +48,60 @@ export class ChatbotService {
   async processQuery(
     queryRequest: ChatbotRequestDto,
   ): Promise<ChatbotResponseDto> {
-    const { query } = queryRequest;
+    const { query }: { query: string } = queryRequest;
 
     try {
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-3.5-turbo-0125',
-        messages: [{ role: 'user', content: query }],
-        function_call: 'auto',
-        functions: [
-          {
-            name: 'searchProducts',
-            description:
-              'Search for products by name and retrieve specific characteristics...',
-            parameters: {
-              type: 'object',
-              properties: {
-                query: {
-                  type: 'object',
-                  properties: {
-                    name: { type: 'string', description: 'Product name' },
-                    price: {
-                      type: 'boolean',
-                      description: 'Set to true for price inquiries',
+      const response: OpenAIResponse =
+        await this.openai.chat.completions.create({
+          model: 'gpt-3.5-turbo-0125',
+          messages: [{ role: 'user', content: query }],
+          function_call: 'auto',
+          functions: [
+            {
+              name: 'searchProducts',
+              description:
+                'Search for products by name and retrieve specific characteristics...',
+              parameters: {
+                type: 'object',
+                properties: {
+                  query: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string', description: 'Product name' },
+                      price: {
+                        type: 'boolean',
+                        description: 'Set to true for price inquiries',
+                      },
                     },
+                    required: ['name'],
                   },
-                  required: ['name'],
                 },
+                required: ['query'],
               },
-              required: ['query'],
             },
-          },
-          {
-            name: 'convertCurrencies',
-            description: 'Convert currencies using exchange rates',
-            parameters: {
-              type: 'object',
-              properties: {
-                amount: { type: 'number', description: 'Amount to convert' },
-                fromCurrency: {
-                  type: 'string',
-                  description: 'Source currency',
+            {
+              name: 'convertCurrencies',
+              description: 'Convert currencies using exchange rates',
+              parameters: {
+                type: 'object',
+                properties: {
+                  amount: { type: 'number', description: 'Amount to convert' },
+                  fromCurrency: {
+                    type: 'string',
+                    description: 'Source currency',
+                  },
+                  toCurrency: {
+                    type: 'string',
+                    description: 'Target currency',
+                  },
                 },
-                toCurrency: { type: 'string', description: 'Target currency' },
+                required: ['amount', 'fromCurrency', 'toCurrency'],
               },
-              required: ['amount', 'fromCurrency', 'toCurrency'],
             },
-          },
-        ],
-      });
+          ],
+        });
 
-      const message = response.choices[0].message;
+      const message: OpenAIMessage = response.choices[0].message;
       const usage = response.usage;
       const tokenUsage: TokenUsageDto = {
         promptTokens: usage.prompt_tokens,
@@ -103,13 +113,14 @@ export class ChatbotService {
 
       if (message?.function_call) {
         const { name, arguments: args } = message.function_call;
-        const parsedArgs = JSON.parse(args);
+        const parsedArgs: FunctionCallArguments = JSON.parse(args);
 
         if (name === 'searchProducts') {
-          const products = await this.searchProducts(parsedArgs.query);
+          const products: string = await this.searchProducts(parsedArgs.query);
           result = `Products found: ${products}`;
         } else if (name === 'convertCurrencies') {
-          const convertedAmount = await this.convertCurrencies(parsedArgs);
+          const convertedAmount: number =
+            await this.convertCurrencies(parsedArgs);
           result = `Converted amount: ${convertedAmount.toFixed(2)}`;
         } else {
           throw new Error(`Unknown function: ${name}`);
@@ -128,7 +139,7 @@ export class ChatbotService {
     }
   }
 
-  private async searchProducts(query: string): Promise<string> {
+  private async searchProducts(query: QueryInterface): Promise<string> {
     try {
       return await this.csvService.searchProducts(query);
     } catch (error) {
@@ -146,7 +157,7 @@ export class ChatbotService {
     toCurrency,
   }: CurrencyConversionInterface): Promise<number> {
     try {
-      const apiKey = this.configService.get<string>('EXCHANGE_API_KEY');
+      const apiKey: string = this.configService.get<string>('EXCHANGE_API_KEY');
       if (!apiKey) {
         throw new HttpException(
           'Exchange rate service is not configured',
@@ -164,7 +175,7 @@ export class ChatbotService {
         }),
       );
 
-      const rate = response.data?.rates?.[toCurrency];
+      const rate: number = response.data?.rates?.[toCurrency];
       if (!rate) {
         throw new HttpException(
           `Exchange rate not found for ${toCurrency}`,

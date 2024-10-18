@@ -3,14 +3,15 @@ import * as fs from 'fs';
 import * as csvParser from 'csv-parser';
 import { promisify } from 'util';
 import { pipeline } from 'stream';
+import { QueryInterface } from '../chatbot/interfaces/chatBot.interface';
+import { Product } from './interfaces/products.interface';
 
 @Injectable()
 export class CsvService {
   private readonly logger = new Logger(CsvService.name);
 
-  async searchProducts(query: any): Promise<any> {
-    const products: any[] = [];
-
+  async searchProducts(query: QueryInterface): Promise<string> {
+    const products: Product[] = [];
     try {
       const pipelineAsync = promisify(pipeline);
       await pipelineAsync(
@@ -28,7 +29,7 @@ export class CsvService {
           }
         },
       );
-      const productNames = products
+      const productNames: string = products
         .slice(0, 2)
         .map((p) => {
           if (query?.price) {
