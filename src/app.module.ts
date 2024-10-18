@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { ConfigModule } from '@nestjs/config';
-import { CsvService } from './csv/csv.service';
 
 @Module({
   imports: [
@@ -13,6 +12,6 @@ import { CsvService } from './csv/csv.service';
     ChatbotModule,
   ],
   controllers: [AppController],
-  providers: [AppService, CsvService],
+  providers: [AppService],
 })
 export class AppModule {}

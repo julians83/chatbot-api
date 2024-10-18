@@ -20,21 +20,4 @@ export class ChatbotController {
   ): Promise<ChatbotResponseDto> {
     return await this.chatbotService.processQuery(chatbotRequestDto);
   }
-
-  @Post('convert-currencies')
-  @ApiOperation({ summary: 'Convert currencies' })
-  @ApiResponse({
-    status: 200,
-    description: 'Currencies converted successfully',
-    type: Number,
-  })
-  async convertCurrencies(
-    @Body() { amount, fromCurrency, toCurrency }: any,
-  ): Promise<number> {
-    return await this.chatbotService.convertCurrencies({
-      amount,
-      fromCurrency,
-      toCurrency,
-    });
-  }
 }
